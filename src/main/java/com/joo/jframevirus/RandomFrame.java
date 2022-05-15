@@ -2,10 +2,9 @@ package com.joo.jframevirus;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.KeyEvent;
+
 
 public class RandomFrame extends JFrame {
-    private JLabel label;
     private static final String[] randomText = {
             "I'm not a virus",
             "god take you",
@@ -25,7 +24,7 @@ public class RandomFrame extends JFrame {
     }
 
     private void setupLabel() {
-        label = new JLabel(this.getRandomText(), JLabel.CENTER);
+        JLabel label = new JLabel(this.getRandomText(), JLabel.CENTER);
         label.setFont(new Font(Font.DIALOG, Font.BOLD, (int) (Math.random() * 200) + 50));
         label.setForeground(new Color(
                 (int) (Math.random() * 255),
