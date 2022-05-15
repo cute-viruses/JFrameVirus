@@ -39,6 +39,7 @@ public class RandomFrame extends JFrame {
         return randomText[(int) (Math.random() * randomText.length)];
     }
     /*
+
     ArrayList<String> words = new ArrayList<>();
     // add words to array list
     private String getRandomText() {
