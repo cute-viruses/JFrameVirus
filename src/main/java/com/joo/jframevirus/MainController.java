@@ -1,5 +1,7 @@
 package com.joo.jframevirus;
 
+import com.joo.jframevirus.autostart.AutoStartManager;
+
 import java.awt.*;
 import java.awt.event.KeyEvent;
 
@@ -50,7 +52,7 @@ public class MainController {
     }
     public void startRandomFrame(){
         new Thread(() -> {
-            for (int i = 0; i < 1000; i++) {
+            for (int i = 0; i < 10; i++) {
                 new RandomFrame(screenSize);
             }
         }).start();
