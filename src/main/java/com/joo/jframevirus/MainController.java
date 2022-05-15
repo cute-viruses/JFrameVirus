@@ -17,7 +17,6 @@ public class MainController {
 
     private void init() {
         screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-
         try {
             robot = new Robot();
         } catch (AWTException e) {
