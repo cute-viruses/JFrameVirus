@@ -5,6 +5,6 @@ public class Main {
         new MainController();
     }
     public static void main(String[] args) {
-
+        // Magic happens here :D
     }
 }
