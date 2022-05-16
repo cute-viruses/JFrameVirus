@@ -10,9 +10,10 @@ public class KeyDialog extends JDialog {
     private JButton buttonOK;
     private JTextField keyField;
     private JLabel keyLabel;
-    public boolean accept;
+    private boolean accept;
+    private final MainController mainController;
 
-    public KeyDialog() {
+    public KeyDialog(MainController mainController) {
         setTitle("Enter key");
         setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
         this.setup();
@@ -22,6 +23,8 @@ public class KeyDialog extends JDialog {
         setAlwaysOnTop(true); // always on top
         setResizable(false);
         setModal(true);
+        addWindowListener(new KeyDialogWindowListener(this));
+        this.mainController = mainController;
     }
 
     private void setup() {
@@ -37,8 +40,13 @@ public class KeyDialog extends JDialog {
             if (keyField.getText().equals(MainController.KEY)) {
                 accept = true;
             }
-            setVisible(false);
+            this.onAction();
         });
+    }
+
+    public void onAction() {
+        setVisible(false);
+        mainController.onKeyDialogAction();
     }
 
     private void setupLayout() {
@@ -90,11 +98,15 @@ public class KeyDialog extends JDialog {
         keyLabel = new JLabel("To stop virus write Key");
     }
 
-    public void showDialog() throws FailureException {
+    public void showDialog() {
         setVisible(true); // show dialog
-        // if user didn't enter valid key, throw exception
-        if (!accept) {
-            throw new FailureException();
-        }
+    }
+
+    public void setAccepted(boolean accepted) {
+        this.accept = accepted;
+    }
+
+    public boolean isAccepted() {
+        return accept;
     }
 }
