@@ -19,6 +19,7 @@ public class KeyDialog extends JDialog {
         setContentPane(contentPane);
         pack();
         setLocationRelativeTo(null);
+        setAlwaysOnTop(true); // always on top
         setResizable(false);
         setModal(true);
     }
